@@ -7,62 +7,71 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 import java.util.Map;
 
-@RestController
-@RequestMapping("/cloud")
+@RestController // класс контроллер
+@RequestMapping("/cloud") // общий путь для всех методов класса
 public class FileController {
 
-    @Autowired
+
+    @Autowired // автоматически создается объект FileService
     private FileService fileService;
 
-    @Autowired
+
+    @Autowired // // автоматически создается объект AuthorizationService
     private AuthorizationService authService;
 
-    @PostMapping("/login")
+
+    @PostMapping("/login")// Обрабатывает POST-запросы по адресу /cloud/login
     public ResponseEntity<String> login(@RequestBody Map<String, String> loginRequest) {
-        String login = loginRequest.get("login");
-        String password = loginRequest.get("password");
-        String authToken = authService.authenticate(login, password);
+        String login = loginRequest.get("login"); // извлекает лог из запроса
+        String password = loginRequest.get("password");// извлекает пароль из запроса
+        String authToken = authService.authenticate(login, password); // аутентифицирует пользователя и создается токен
         return ResponseEntity.ok(authToken); // Возвращается токен как строка
     }
 
-    @PostMapping("/logout")
+
+    @PostMapping("/logout")// Обрабатывает POST-запросы по адресу /cloud/logout
     public ResponseEntity<Void> logout(@RequestHeader("auth-token") String authToken) {
         authService.logout(authToken);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().build();// Возвращает статус 200 OK без тела ответа
     }
 
-    @PostMapping("/file")
+
+    @PostMapping("/file")// Обрабатывает POST-запросы по адресу /cloud/file
     public ResponseEntity<Void> uploadFile(
-            @RequestHeader("auth-token") String authToken,
-            @RequestParam("filename") String filename,
-            @RequestParam("file") MultipartFile file) {
-        fileService.uploadFile(authToken, filename, file);
-        return ResponseEntity.ok().build();
+            @RequestHeader("auth-token") String authToken,//извлекается токен из заголовка
+            @RequestParam("filename") String filename, //извлекается имя файла из параметров запроса
+            @RequestParam("file") MultipartFile file) { // извлекает файл из параметров запроса
+        fileService.uploadFile(authToken, filename, file);// загружается файл
+        return ResponseEntity.ok().build();  // Возвращает статус 200 OK без тела ответа
     }
 
-    @DeleteMapping("/file")
+
+    @DeleteMapping("/file")// Обрабатывает DELETE-запросы по адресу /cloud/file
     public ResponseEntity<Void> deleteFile(
             @RequestHeader("auth-token") String authToken,
             @RequestParam("filename") String filename) {
-        fileService.deleteFile(authToken, filename);
+        fileService.deleteFile(authToken, filename); // удаляется файл
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/file")
+
+    @GetMapping("/file") // Обрабатывает GET-запросы по адресу /cloud/file
     public ResponseEntity<byte[]> downloadFile(
             @RequestHeader("auth-token") String authToken,
             @RequestParam("filename") String filename) {
-        byte[] fileData = fileService.downloadFile(authToken, filename);
-        return ResponseEntity.ok(fileData);
+        byte[] fileData = fileService.downloadFile(authToken, filename);// загружается файл
+        return ResponseEntity.ok(fileData);// Возвращает содержимое файла с HTTP статусом 200 OK
     }
 
-    @GetMapping("/list")
+
+    @GetMapping("/list") // Обрабатывает GET-запросы по адресу /cloud/list
     public ResponseEntity<List<FileEntity>> listFiles(
-            @RequestHeader("auth-token") String authToken) {
+            @RequestHeader("auth-token") String authToken) { // Получает список файлов пользователя
         List<FileEntity> files = fileService.listFiles(authToken);
-        return ResponseEntity.ok(files);
+        return ResponseEntity.ok(files);// Возвращает список файлов с HTTP статусом 200 OK
     }
 }

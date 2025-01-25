@@ -1,21 +1,26 @@
 package org.example.cloudstorage.model;
 
-
 import jakarta.persistence.*;
+
 import java.util.List;
 
+
+//класс сущность отображаемая в базе данных
 @Entity
+//имя таблицы в базе данных, которая будет соответствовать этой сущности
 @Table(name = "users")
 public class User {
-    @Id
+    @Id //поле является уникальным идентификатором сущности
+    // автоматическая генерация значения идентификатора
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String login;
-    private String passwordHash;
-   private String authToken;
+    private Long id; //для хранения идентификатора
+    private String login; //для хранения логина
+    private String passwordHash;//для хранения хеша пароля
+    private String authToken;//для хранения токена
 
-    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
-    private List<FileEntity> files; // связь с файлами
+    //один пользователь может иметь множество файлов
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<FileEntity> files; // связь с файлами принадлежащими пользователю
 
     public Long getId() {
         return id;
@@ -41,7 +46,7 @@ public class User {
         this.passwordHash = passwordHash;
     }
 
-   public String getAuthToken() {
+    public String getAuthToken() {
         return authToken;
     }
 

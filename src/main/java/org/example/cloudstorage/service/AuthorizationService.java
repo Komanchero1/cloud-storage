@@ -1,8 +1,6 @@
 package org.example.cloudstorage.service;
 
 
-import org.example.cloudstorage.exeption.InvalidCredentialsException;
-import org.example.cloudstorage.exeption.UserNotFoundException;
 import org.example.cloudstorage.model.User;
 import org.example.cloudstorage.repository.UserRepository;
 import org.slf4j.Logger;
@@ -11,49 +9,55 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service //класс является сервисом, который будет управляться контейнером Spring
 public class AuthorizationService {
 
+    // логгер для записи информации о событиях и ошибках
     private static final Logger logger = LoggerFactory.getLogger(AuthorizationService.class);
 
-    @Autowired
+    @Autowired//автоматически создается объект UserRepository
     private UserRepository userRepository;
 
-    @Autowired
+    @Autowired //автоматически создается объект PasswordEncoder
     private PasswordEncoder passwordEncoder;
 
-    public String authenticate(String login, String password) {
-        User user = userRepository.findByLogin(login)
-                .orElseThrow(() -> {
-                    logger.warn("\n" +
-                            "Не удалось выполнить аутентификацию пользователя: {}", login);
-                    return new UserNotFoundException("Пользователь не найден");
-                });
 
+    // метод для аутентификации пользователя по логину и паролю
+    public String authenticate(String login, String password) {
+        // поиск пользователя по логину, если не найден - выбрасывается исключение
+        User user = userRepository.findByLogin(login)
+                .orElseThrow(() -> new RuntimeException("Неверный логин или пароль"));
+
+        // проверка совпадения пароля с хэшом
         if (!passwordEncoder.matches(password, user.getPasswordHash())) {
-            logger.warn("Неверный логин или пароль: {}", login);
-            throw new InvalidCredentialsException("Неверный логин или пароль");
+            throw new RuntimeException("Неверный логин или пароль");
         }
 
+        // генерация токена
         String authToken = generateAuthToken(user);
-        user.setAuthToken(authToken);
-        userRepository.save(user);
-        logger.info("Пользователь {} аутентифицирован успешно", login);
-        return authToken;
+        user.setAuthToken(authToken); // Установка токена
+        userRepository.save(user); // Сохранение пользователя с новым токеном
+        System.out.println(authToken);
+        return authToken; // Возвращаем токен
     }
 
+
+    // метод для выхода пользователя из системы
     public void logout(String authToken) {
+        // поиск пользователя по токену
         User user = userRepository.findByAuthToken(authToken)
                 .orElseThrow(() -> {
-                    logger.warn("Попытка выхода из системы с неверным токеном: {}", authToken);
+                    logger.warn("Попытка выхода из системы с неверным токеном: {}", authToken);// логирование
                     return new RuntimeException("Неавторизованный доступ");
                 });
-        user.setAuthToken(null);
-        userRepository.save(user);
+        user.setAuthToken(null);//установка токена в null, завершение сессии
+        userRepository.save(user);// сохранение обновленного пользователя в базе данных
         logger.info("Пользователь {} \n" + "успешно вышел из системы", user.getLogin());
     }
 
+
+    // метод для генерации токена аутентификации
     private String generateAuthToken(User user) {
-        return java.util.UUID.randomUUID().toString();
+        return java.util.UUID.randomUUID().toString();// Генерация уникального токена
     }
 }

@@ -19,33 +19,39 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-@Service
+@Service //класс является сервисом, который будет управляться контейнером Spring
 public class FileService {
 
+    // логгер для записи информации о событиях и ошибках
     private static final Logger logger = LoggerFactory.getLogger(FileService.class);
 
-    @Autowired
+    @Autowired //автоматически создается объект UserRepository
     private UserRepository userRepository;
 
-    @Autowired
+
+    @Autowired //автоматически создается объект FileRepository
     private FileRepository fileRepository;
 
+    //создается директория для загрузки файлов
     private final String uploadDir = "uploads/";
 
+
+    // метод для загрузки файла
     public void uploadFile(String authToken, String filename, MultipartFile file) {
-        User user = validateToken(authToken);
+        User user = validateToken(authToken);// проверка токена и получение пользователя
+
 
         try {
-            Files.createDirectories(Paths.get(uploadDir));
-            Path filePath = Paths.get(uploadDir + filename);
-            file.transferTo(filePath.toFile());
+            Files.createDirectories(Paths.get(uploadDir));// создание директории для загрузки, если она не существует
+            Path filePath = Paths.get(uploadDir + filename);// определение пути для сохранения файла
+            file.transferTo(filePath.toFile());// перемещение загруженного файла в указанную директорию
 
-            FileEntity fileEntity = new FileEntity();
-            fileEntity.setFilename(filename);
-            fileEntity.setSize(file.getSize());
-            fileEntity.setFilePath(filePath.toString());
-            fileEntity.setUser(user);
-            fileRepository.save(fileEntity);
+            FileEntity fileEntity = new FileEntity();// создание объекта FileEntity
+            fileEntity.setFilename(filename);//установка имени файла
+            fileEntity.setSize(file.getSize());//установка размера файла
+            fileEntity.setFilePath(filePath.toString());//установка пути к файлу
+            fileEntity.setUser(user);//установка связи с пользователем
+            fileRepository.save(fileEntity);//сохранение информации в базе данных
             logger.info("Файл{} успешно загружен {}", filename, user.getLogin());
         } catch (IOException e) {
             logger.error("шибка при загрузке файла {}: {}", filename, e.getMessage(), e);
@@ -53,27 +59,31 @@ public class FileService {
         }
     }
 
+
+    // метод для удаления файла
     public void deleteFile(String authToken, String filename) {
-        User user = validateToken(authToken);
+        User user = validateToken(authToken);// проверка токена и получение пользователя
         FileEntity fileEntity = fileRepository.findByFilenameAndUser(filename, user)
                 .orElseThrow(() -> {
                     logger.warn("\n" +
                             "Файл не найден для удаления: {}", filename);
-                    return new FileNotFoundException("Файл не найден");
+                    return new FileNotFoundException("Файл не найден");//если файл не найден
                 });
 
-        new File(fileEntity.getFilePath()).delete();
-        fileRepository.delete(fileEntity);
+        new File(fileEntity.getFilePath()).delete();// удаление файла с диска
+        fileRepository.delete(fileEntity);// удаление информации о файле из базы данных
         logger.info("Файл {} успешно удален пользователем {}", filename, user.getLogin());
     }
 
+
+    // метод для скачивания файла
     public byte[] downloadFile(String authToken, String filename) {
-        User user = validateToken(authToken);
+        User user = validateToken(authToken);// проверка токена и получение пользователя
         FileEntity fileEntity = fileRepository.findByFilenameAndUser(filename, user)
                 .orElseThrow(() -> {
                     logger.warn("\n" +
                             "Файл не найден для скачивания: {}", filename);
-                    return new FileNotFoundException("Файл не найден");
+                    return new FileNotFoundException("Файл не найден");//если файл не найден
                 });
 
         try {
@@ -84,11 +94,15 @@ public class FileService {
         }
     }
 
+
+    // метод для получения списка файлов пользователя
     public List<FileEntity> listFiles(String authToken) {
-        User user = validateToken(authToken);
-        return fileRepository.findByUserId(user.getId());
+        User user = validateToken(authToken);// проверка токена и получение пользователя
+        return fileRepository.findByUserId(user.getId());//возвращение списка файлов, принадлежащих пользователю
     }
 
+
+    // метод для проверки токена аутентификации
     private User validateToken(String authToken) {
         return userRepository.findByAuthToken(authToken)
                 .orElseThrow(() -> {

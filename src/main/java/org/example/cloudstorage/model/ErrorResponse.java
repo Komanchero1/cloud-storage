@@ -1,16 +1,15 @@
 package org.example.cloudstorage.model;
 
-
-
 import java.time.LocalDateTime;
 
 
 public class ErrorResponse {
-    private LocalDateTime timestamp;
-    private int status;
-    private String message;
-    private String error;
-    private String path;
+
+    private LocalDateTime timestamp;//для хранения времени и даты
+    private int status;//для хранения статуса
+    private String message;// для хранения текста сообщения
+    private String error;//для хранения общего содержания ошибки
+    private String path;// для хранения пути
 
     public String getPath() {
         return path;
