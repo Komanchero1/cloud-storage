@@ -24,6 +24,13 @@ public class FileController {
     private AuthorizationService authService;
 
 
+    / Обработка OPTIONS запроса для /cloud/login
+    @RequestMapping(value = "/login", method = RequestMethod.OPTIONS)
+    public ResponseEntity<Void> optionsForLogin() {
+        return ResponseEntity.ok().build(); // Возвращаем пустой ответ
+    }
+
+    
     @PostMapping("/login")// Обрабатывает POST-запросы по адресу /cloud/login
     public ResponseEntity<String> login(@RequestBody Map<String, String> loginRequest) {
         String login = loginRequest.get("login"); // извлекает лог из запроса
