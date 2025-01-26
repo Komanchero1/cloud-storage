@@ -21,7 +21,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable) //отключается защита от CSFR
                 .authorizeHttpRequests(authorize -> authorize//настройка авторизации для HTTP запросов
-                        .requestMatchers("/login", "/logout").permitAll() // разрешение доступа к /login и /logout без авторизации
+                        .requestMatchers("/cloud/login", "/cloud/logout").permitAll() // разрешение доступа к /login и /logout без авторизации
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // разрешение для OPTIONS для всех типов URL
                         .anyRequest().authenticated()); // все остальные запросы требуют аутентификации
         return http.build();//возвращается объект SecurityFilterChain
