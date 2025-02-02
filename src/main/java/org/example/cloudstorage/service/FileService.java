@@ -88,11 +88,11 @@ public class FileService {
                     return new FileNotFoundException("Файл не найден");//если файл не найден
                 });
 
-        // создается представляющий файл который нужно удалить и определяется путь к нему
+        // сначала удаляется информация о файле из базы данных
+        fileRepository.delete(fileEntity);
+        // создается объект представляющий файл который нужно удалить и определяется путь к нему
         File fileToDelete = new File(fileEntity.getFilePath());
         if (fileToDelete.delete()) {    //попытка удалить файл с диска возвращает "true или  false"
-            // Удаление информации о файле из базы данных
-            fileRepository.delete(fileEntity); //если файл удален вызывается delete репозитория для удаления записи из БД
             logger.info("Файл {} успешно удален пользователем {}", filename, user.getLogin());
         } else {  // если нет то логируется ошибка
             logger.error("Ошибка при удалении файла с диска: {}", filename);
